@@ -1,0 +1,63 @@
+\#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <pthread.h>
+
+// Luồng phụ song song: CHUYÊN ĐỢI VÀ NHẬN PHẢN HỒI từ Server mạng LAN
+void* receive_func(void* socket_desc) {
+    int sock = *(int*)socket_desc;
+    char buffer[1024];
+
+    while(1) {
+        memset(buffer, 0, 1024);
+        int valread = read(sock, buffer, 1024);
+        if (valread <= 0) {
+            printf("\nServer mạng LAN đã đóng cổng / ngắt kết nối.\n");
+            break;
+        }
+        printf("\nServer gửi: %s", buffer);
+        printf("Client (Bạn): ");
+        fflush(stdout);
+    }
+    close(sock);
+    free(socket_desc);
+    exit(0);
+}
+
+int main() {
+    int sock = 0, *new_sock;
+    struct sockaddr_in serv_addr;
+    char message[1024];
+    pthread_t recv_thread;
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(8080); // Cổng kết nối phải trùng khớp với cổng của Server
+    
+    // ĐÂY LÀ DÒNG THAY ĐỔI CỐT LÕI: Đưa IP LAN thực tế của máy Server (Máy A) vào đây
+    inet_pton(AF_INET, "192.168.106.128", &serv_addr.sin_addr); 
+    
+    printf("Đang gửi gói tin bắt tay kết nối tới Server mạng LAN qua IP 192.168.1.15...\n");
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        printf("Lỗi! Kết nối thất bại. Hãy kiểm tra: Hai máy chung Wi-Fi chưa? Sai IP không? Tường lửa chặn không?\n");
+        return -1;
+    }
+    printf("Đã kết nối thành công tới Server mạng LAN!\n");
+
+    // Khởi tạo luồng phụ nhận dữ liệu độc lập
+    new_sock = malloc(sizeof(int));
+    *new_sock = sock;
+    pthread_create(&recv_thread, NULL, receive_func, (void*)new_sock);
+
+    // Luồng chính: CHUYÊN ĐỢI NHẬP VÀ GỬI TIN LIÊN TỤC SANG SERVER
+    while(1) {
+        printf("Client (Bạn): ");
+        fgets(message, 1024, stdin);
+        send(sock, message, strlen(message), 0); // Bắn liên tục không sợ kẹt lượt chơi
+    }
+
+    return 0;
+}

@@ -1,0 +1,15 @@
+gpg: directory '/home/rachel/.gnupg' created
+gpg: keybox '/home/rachel/.gnupg/pubring.kbx' created
+Backup tự động hoàn tất: /home/rachel/linuxKernelProject/file_toolkit/backups/backup_20260615_152901.tar.gz.gpg
+Bắt đầu backup tự động cho /home/rachel/socket
+Backup tự động hoàn tất: /home/rachel/linuxKernelProject/file_toolkit/backups/backup_20260616_150601.tar.gz.gpg
+Bắt đầu backup tự động cho /home/rachel/lab1
+Backup tự động hoàn tất: /home/rachel/linuxKernelProject/file_toolkit/backups/backup_20260616_152901.tar.gz.gpg
+Bắt đầu backup tự động cho /home/rachel/socket
+Backup tự động hoàn tất: /home/rachel/linuxKernelProject/file_toolkit/backups/backup_20260616_165301.tar.gz.gpg
+Bắt đầu backup tự động cho /home/rachel/socket
+Backup tự động hoàn tất: /home/rachel/linuxKernelProject/file_toolkit/backups/backup_20260616_165501.tar.gz.gpg
+Đang gửi backup sang hung@192.168.106.100:/home/hung/ ...
+Gửi thành công lên hung@192.168.106.100:/home/hung/
+Bắt đầu backup tự động cho /home/rachel/socket
+Backup tự động hoàn tất: /home/rachel/linuxKernelProject/file_toolkit/backups/backup_20260618_150601.tar.gz.gpg
