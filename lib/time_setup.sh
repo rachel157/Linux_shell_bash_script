@@ -37,7 +37,7 @@ time_setup_menu() {
                 ;;
             4)
                 if ! check_root; then gui_msg "Cần quyền root"; continue; fi
-                tzlist=$(timedatectl list-timezones 2>/dev/null | head -30)
+                tzlist=$(timedatectl list-timezones 2>/dev/null)
                 # Tạo menu chọn timezone
                 tzchoice=$(whiptail --title "Chọn múi giờ" --menu "Danh sách múi giờ:" 20 70 12 $(echo "$tzlist" | awk '{print $1 " " $1}') 3>&1 1>&2 2>&3)
                 if [[ -n "$tzchoice" ]]; then
