@@ -7,6 +7,31 @@ source "$(dirname "${BASH_SOURCE[0]}")/utils.sh"
 GPG_PASS="${GPG_PASS:-}"
 KEYFILE="${KEYFILE:-}"
 
+# Xoay vòng backup: giữ lại $1 bản mới nhất, xóa các bản cũ hơn
+# Tham số $1: số bản muốn giữ lại (mặc định 7)
+rotate_backups() {
+    local keep="${1:-7}"
+    local backup_files
+    mapfile -t backup_files < <(ls -t "${BACKUP_DIR}"/*.tar.gz.gpg 2>/dev/null)
+    local total=${#backup_files[@]}
+
+    if [[ $total -eq 0 ]]; then
+        echo "Rotation: Không có file backup nào."
+        return 0
+    fi
+
+    if [[ $total -le $keep ]]; then
+        echo "Rotation: Đang có $total/$keep bản. Không cần xóa."
+        return 0
+    fi
+
+    local to_delete=("${backup_files[@]:$keep}")
+    echo "Rotation: Có $total bản, giữ lại $keep. Xóa ${#to_delete[@]} bản cũ..."
+    for old_file in "${to_delete[@]}"; do
+        rm -f "$old_file" && echo "Đã xóa: $old_file" || echo "Xóa thất bại: $old_file"
+    done
+}
+
 create_backup() {
     local source_path="$1"
     local encrypt_mode="$2"
@@ -40,7 +65,8 @@ create_backup() {
         return 1
     fi
     rm -f "$archive"
-    gui_msg "Backup thành công:\n$encrypted"
+    rotate_backups 7
+    gui_msg "Backup thành công:\n$encrypted\n\n✅ Đã tự động giữ lại 7 bản mới nhất."
     return 0
 }
 
@@ -160,9 +186,10 @@ ssh_backup() {
 manage_backups() {
     while true; do
         choice=$(gui_menu "Quản lý backup" \
-            "1" "Xem danh sách" \
-            "2" "Xóa một backup" \
-            "3" "Quay lại")
+            "1" "Xem danh sách backup" \
+            "2" "Xóa một backup thủ công" \
+            "3" "🔄 Chạy Rotation ngay (xóa bản cũ)" \
+            "4" "Quay lại")
         case $choice in
             1)
                 ls -lh "${BACKUP_DIR}"/*.tar.gz.gpg 2>/dev/null > /tmp/backup_list.txt
@@ -184,7 +211,16 @@ manage_backups() {
                     rm -f "${backups[$((idx-1))]}" && gui_msg "Đã xóa"
                 fi
                 ;;
-            3) break ;;
+            3)
+                keep=$(gui_input "Giữ lại bao nhiêu bản backup gần nhất?" "7")
+                [[ -z "$keep" || ! "$keep" =~ ^[0-9]+$ ]] && {
+                    gui_msg "Số không hợp lệ. Vui lòng nhập số nguyên dương."
+                    continue
+                }
+                rotate_backups "$keep" > /tmp/rotation_result.txt 2>&1
+                gui_textbox /tmp/rotation_result.txt "Kết quả Rotation"
+                ;;
+            4) break ;;
         esac
     done
 }

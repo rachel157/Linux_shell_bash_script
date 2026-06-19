@@ -37,11 +37,41 @@ time_setup_menu() {
                 ;;
             4)
                 if ! check_root; then gui_msg "Cần quyền root"; continue; fi
-                tzlist=$(timedatectl list-timezones 2>/dev/null)
-                # Tạo menu chọn timezone
-                tzchoice=$(whiptail --title "Chọn múi giờ" --menu "Danh sách múi giờ:" 20 70 12 $(echo "$tzlist" | awk '{print $1 " " $1}') 3>&1 1>&2 2>&3)
+
+                # --- BƯỚC 1: Chọn Châu lục / Khu vực ---
+                continent_list=$(timedatectl list-timezones 2>/dev/null \
+                    | awk -F'/' '{print $1}' \
+                    | sort -u)
+
+                continent_args=()
+                while IFS= read -r c; do
+                    continent_args+=("$c" "$c")
+                done <<< "$continent_list"
+
+                continent=$(whiptail --title "Đổi múi giờ - Bước 1/2" \
+                    --menu "Chọn Châu lục / Khu vực:" \
+                    20 60 12 \
+                    "${continent_args[@]}" \
+                    3>&1 1>&2 2>&3)
+
+                [[ -z "$continent" ]] && continue
+
+                # --- BƯỚC 2: Chọn Timezone trong Châu lục đó ---
+                tz_args=()
+                while IFS= read -r tz; do
+                    tz_args+=("$tz" "$tz")
+                done < <(timedatectl list-timezones 2>/dev/null | grep "^${continent}/")
+
+                tzchoice=$(whiptail --title "Đổi múi giờ - Bước 2/2 (${continent})" \
+                    --menu "Chọn múi giờ:" \
+                    20 70 12 \
+                    "${tz_args[@]}" \
+                    3>&1 1>&2 2>&3)
+
                 if [[ -n "$tzchoice" ]]; then
-                    timedatectl set-timezone "$tzchoice" && gui_msg "Đã đổi múi giờ sang $tzchoice" || gui_msg "Đổi múi giờ thất bại"
+                    timedatectl set-timezone "$tzchoice" \
+                        && gui_msg "✅ Đã đổi múi giờ sang $tzchoice" \
+                        || gui_msg "Đổi múi giờ thất bại"
                 fi
                 ;;
             5) break ;;

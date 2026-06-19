@@ -30,6 +30,7 @@ if [[ "$1" == "--backup-dir" && -n "$2" ]]; then
             --keyfile)    KEYFILE="$2"; shift 2 ;;
             --ssh-dest)   SSH_DEST="$2"; shift 2 ;;
             --ssh-path)   SSH_PATH="$2"; shift 2 ;;
+            --keep-days)  KEEP_DAYS="$2"; shift 2 ;;
             *) shift ;;
         esac
     done
@@ -57,6 +58,10 @@ if [[ "$1" == "--backup-dir" && -n "$2" ]]; then
 
     if [[ -f "$ENCRYPTED" ]]; then
         echo "Backup tự động hoàn tất: $ENCRYPTED"
+        # Tự động xoay vòng backup - giữ lại N bản gần nhất (mặc định 7)
+        KEEP_DAYS="${KEEP_DAYS:-7}"
+        echo "Đang chạy rotation, giữ lại ${KEEP_DAYS} bản gần nhất..."
+        rotate_backups "$KEEP_DAYS"
         if [[ -n "$SSH_DEST" && -n "$SSH_PATH" ]]; then
             echo "Đang gửi sang $SSH_DEST..."
             if ssh -o BatchMode=yes -o ConnectTimeout=10 "$SSH_DEST" "mkdir -p '$SSH_PATH'" 2>/dev/null; then
