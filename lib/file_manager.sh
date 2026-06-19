@@ -57,7 +57,8 @@ file_manager_menu() {
                 ;;
             5)
                 # --- BƯỚC 1: Thư mục tìm kiếm (bắt buộc) ---
-                sdir=$(gui_input "🔍 TÌM KIẾM FILE - Bước 1/6\n\nThư mục tìm kiếm (bắt buộc):" "/home")
+                default_dir=$(echo ~)
+                sdir=$(gui_input "🔍 TÌM KIẾM FILE - Bước 1/6\n\nThư mục tìm kiếm (bắt buộc):\n(vd: /home/rachel, /var/log, / để tìm toàn hệ thống)" "$default_dir")
                 [[ -z "$sdir" ]] && continue
                 if [[ ! -d "$sdir" ]]; then
                     gui_msg "Lỗi: '$sdir' không phải thư mục hợp lệ."
@@ -83,29 +84,39 @@ file_manager_menu() {
                 # --- BƯỚC 6: Tìm theo nội dung bên trong file (tùy chọn) ---
                 content=$(gui_input "Bước 6/6 - Từ khóa trong nội dung file\n(vd: ERROR, rachel, backup)\nBỏ trống để bỏ qua:" "")
 
-                # --- Ghép lệnh find từ các tiêu chí đã nhập ---
-                find_cmd="find \"$sdir\""
+                # --- Xây dựng lệnh find bằng MẢNG (không dùng eval) ---
+                find_args=("$sdir")
+                [[ "$ftype_choice" == "f" ]] && find_args+=("-type" "f")
+                [[ "$ftype_choice" == "d" ]] && find_args+=("-type" "d")
+                [[ -n "$pattern" ]]          && find_args+=("-name" "$pattern")
+                [[ -n "$sz" ]]               && find_args+=("-size" "$sz")
+                [[ -n "$mtime" ]]            && find_args+=("-mtime" "$mtime")
+                [[ -n "$content" ]]          && find_args+=("-exec" "grep" "-l" "$content" "{}" ";")
 
-                [[ "$ftype_choice" == "f" ]]    && find_cmd+=" -type f"
-                [[ "$ftype_choice" == "d" ]]    && find_cmd+=" -type d"
-                [[ -n "$pattern" ]]             && find_cmd+=" -name \"$pattern\""
-                [[ -n "$sz" ]]                  && find_cmd+=" -size $sz"
-                [[ -n "$mtime" ]]               && find_cmd+=" -mtime $mtime"
-                [[ -n "$content" ]]             && find_cmd+=" -exec grep -l \"$content\" {} \;"
+                # Chuỗi chỉ dùng để hiển thị cho người dùng xem (không dùng để chạy)
+                display_cmd="find ${find_args[*]}"
 
-                # Hiển thị lệnh sẽ chạy và hỏi xác nhận
-                if gui_yesno "Sẽ chạy lệnh:\n\n$find_cmd\n\nXác nhận tìm kiếm?"; then
-                    eval "$find_cmd" > /tmp/find_result.txt 2>/tmp/find_err.txt
+                if gui_yesno "Sẽ chạy lệnh:\n\n$display_cmd\n\nXác nhận tìm kiếm?"; then
+                    # Chạy bằng mảng - an toàn, không cần eval
+                    find "${find_args[@]}" > /tmp/find_result.txt 2>/tmp/find_err.txt
 
-                    count=$(grep -c "" /tmp/find_result.txt 2>/dev/null || echo 0)
+                    count=$(wc -l < /tmp/find_result.txt)
+                    count=${count//[[:space:]]/}   # Xóa khoảng trắng thừa của wc
+                    count=${count:-0}
+
                     if [[ "$count" -eq 0 ]]; then
-                        gui_msg "Không tìm thấy kết quả nào thỏa mãn các tiêu chí."
+                        if [[ -s /tmp/find_err.txt ]]; then
+                            gui_msg "Không tìm thấy kết quả.\n\nLỗi truy cập:\n$(head -3 /tmp/find_err.txt)"
+                        else
+                            gui_msg "Không tìm thấy kết quả nào thỏa mãn các tiêu chí."
+                        fi
                     else
                         sed -i "1i=== Tim thay $count ket qua ===" /tmp/find_result.txt
                         gui_textbox /tmp/find_result.txt "Kết quả tìm kiếm ($count mục)"
                     fi
                 fi
                 ;;
+
             6)
                 target=$(gui_input "File/thư mục cần đổi quyền:" "")
                 perm=$(gui_input "Quyền mới (vd: 755, u+x):" "")
