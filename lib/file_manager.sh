@@ -98,10 +98,10 @@ file_manager_menu() {
 
                 if gui_yesno "Sẽ chạy lệnh:\n\n$display_cmd\n\nXác nhận tìm kiếm?"; then
                     # Chạy bằng mảng - an toàn, không cần eval
-                    find "${find_args[@]}" > /tmp/find_result.txt 2>/tmp/find_err.txt
+                    # "|| true" để chặn set -o pipefail khi find gặp Permission denied
+                    find "${find_args[@]}" > /tmp/find_result.txt 2>/tmp/find_err.txt || true
 
-                    count=$(wc -l < /tmp/find_result.txt)
-                    count=${count//[[:space:]]/}   # Xóa khoảng trắng thừa của wc
+                    count=$(grep -c "" /tmp/find_result.txt 2>/dev/null)
                     count=${count:-0}
 
                     if [[ "$count" -eq 0 ]]; then
