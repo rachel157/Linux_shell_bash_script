@@ -5,14 +5,14 @@
 # ============================================================================
 
 # Kích thước mặc định
-WT_HEIGHT=22
-WT_WIDTH=75
-WT_MENU_HEIGHT=14
+WT_HEIGHT=20
+WT_WIDTH=65
+WT_MENU_HEIGHT=12
 
 # Menu chính của chương trình
 gui_main_menu() {
     whiptail --title "SYSADMIN TOOLKIT" \
-        --menu "Chọn chức năng:" \
+        --menu "\n          Chọn chức năng:" \
         $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT \
         "1" "📁 Quản lý file" \
         "2" "⏰ Lập lịch tác vụ (Cron)" \
@@ -30,7 +30,7 @@ gui_menu() {
     local title="$1"
     shift
     whiptail --title "$title" \
-        --menu "Lựa chọn:" \
+        --menu "\n          Lựa chọn:" \
         $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT \
         "$@" \
         3>&1 1>&2 2>&3
