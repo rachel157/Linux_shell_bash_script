@@ -9,6 +9,11 @@ WT_HEIGHT=20
 WT_WIDTH=65
 WT_MENU_HEIGHT=12
 
+# Ẩn hiệu ứng đổ bóng (shadow) của whiptail bằng cách đồng bộ màu bóng với màu nền (blue)
+export NEWT_COLORS="
+shadow=blue,blue
+"
+
 # Menu chính của chương trình
 gui_main_menu() {
     whiptail --title "SYSADMIN TOOLKIT" \
