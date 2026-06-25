@@ -22,8 +22,9 @@ kernel_module:
 # Dịch ứng dụng user-space bằng gcc của Buildroot
 app:
 	$(CROSS)gcc -o my_firewall daemon.c
-	$(CROSS)gcc -o fake_server fake_server.c
+	$(CROSS)gcc -o fake_server_tcp fake_server_tcp.c
+	$(CROSS)gcc -o fake_server_udp fake_server_udp.c
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
-	rm -f my_firewall fake_server
+	rm -f my_firewall fake_server_tcp fake_server_udp
