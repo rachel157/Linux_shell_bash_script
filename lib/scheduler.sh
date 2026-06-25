@@ -24,7 +24,7 @@ scheduler_menu() {
                 [[ -z "$schedule" ]] && continue
                 cmd=$(gui_input "Nhập lệnh cần chạy:" "")
                 [[ -z "$cmd" ]] && continue
-                full_cmd="$cmd >> $CRON_LOG 2>&1"
+                full_cmd="( $cmd ) >> $CRON_LOG 2>&1"
                 (crontab -l 2>/dev/null; echo "$schedule $full_cmd") | crontab - 2>/tmp/cron_err.txt
                 if [[ $? -eq 0 ]]; then
                     gui_msg "Đã thêm job thành công"
