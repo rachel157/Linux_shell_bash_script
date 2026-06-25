@@ -31,7 +31,7 @@ pkg_manager_menu() {
                 pkg=$(gui_input "Tên gói cần cài:" "")
                 [[ -z "$pkg" ]] && continue
                 case $PKG_MGR in
-                    apt) sudo apt-get update && sudo apt-get install -y $pkg 2>&1 | tee /tmp/pkg_result.txt ;;
+                    apt) sudo apt-get update -q && sudo apt-get install -y -q $pkg 2>&1 | tee /tmp/pkg_result.txt ;;
                     dnf) sudo dnf install -y "$pkg" 2>&1 | tee /tmp/pkg_result.txt ;;
                     yum) sudo yum install -y "$pkg" 2>&1 | tee /tmp/pkg_result.txt ;;
                 esac
@@ -41,7 +41,7 @@ pkg_manager_menu() {
                 pkg=$(gui_input "Tên gói cần gỡ:" "")
                 [[ -z "$pkg" ]] && continue
                 case $PKG_MGR in
-                    apt) sudo apt-get remove -y "$pkg" 2>&1 | tee /tmp/pkg_result.txt ;;
+                    apt) sudo apt-get remove -y -q "$pkg" 2>&1 | tee /tmp/pkg_result.txt ;;
                     dnf) sudo dnf remove -y "$pkg" 2>&1 | tee /tmp/pkg_result.txt ;;
                     yum) sudo yum remove -y "$pkg" 2>&1 | tee /tmp/pkg_result.txt ;;
                 esac
@@ -65,7 +65,7 @@ pkg_manager_menu() {
                     while read -r pkg; do
                         [[ -z "$pkg" || "$pkg" == \#* ]] && continue
                         case $PKG_MGR in
-                            apt) sudo apt-get install -y "$pkg" </dev/null ;;
+                            apt) sudo apt-get install -y -q "$pkg" </dev/null ;;
                             dnf) sudo dnf install -y "$pkg" ;;
                             yum) sudo yum install -y "$pkg" ;;
                         esac
