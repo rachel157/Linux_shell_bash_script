@@ -31,7 +31,7 @@ pkg_manager_menu() {
                 pkg=$(gui_input "Tên gói cần cài:" "")
                 [[ -z "$pkg" ]] && continue
                 case $PKG_MGR in
-                    apt) sudo apt-get update -q && sudo apt-get install -y -q $pkg 2>&1 | tee /tmp/pkg_result.txt ;;
+                    apt) sudo apt-get update -q && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q $pkg 2>&1 | sed -e 's/\x1B\[[0-9;]*[a-zA-Z]//g' | tr -d '\r' > /tmp/pkg_result.txt ;;
                     dnf) sudo dnf install -y "$pkg" 2>&1 | tee /tmp/pkg_result.txt ;;
                     yum) sudo yum install -y "$pkg" 2>&1 | tee /tmp/pkg_result.txt ;;
                 esac
@@ -41,7 +41,7 @@ pkg_manager_menu() {
                 pkg=$(gui_input "Tên gói cần gỡ:" "")
                 [[ -z "$pkg" ]] && continue
                 case $PKG_MGR in
-                    apt) sudo apt-get remove -y -q "$pkg" 2>&1 | tee /tmp/pkg_result.txt ;;
+                    apt) sudo DEBIAN_FRONTEND=noninteractive apt-get remove -y -q "$pkg" 2>&1 | sed -e 's/\x1B\[[0-9;]*[a-zA-Z]//g' | tr -d '\r' > /tmp/pkg_result.txt ;;
                     dnf) sudo dnf remove -y "$pkg" 2>&1 | tee /tmp/pkg_result.txt ;;
                     yum) sudo yum remove -y "$pkg" 2>&1 | tee /tmp/pkg_result.txt ;;
                 esac
@@ -65,11 +65,11 @@ pkg_manager_menu() {
                     while read -r pkg; do
                         [[ -z "$pkg" || "$pkg" == \#* ]] && continue
                         case $PKG_MGR in
-                            apt) sudo apt-get install -y -q "$pkg" </dev/null ;;
+                            apt) sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q "$pkg" </dev/null ;;
                             dnf) sudo dnf install -y "$pkg" ;;
                             yum) sudo yum install -y "$pkg" ;;
                         esac
-                    done < "$PKG_LIST" 2>&1 | tee /tmp/pkg_batch.txt
+                    done < "$PKG_LIST" 2>&1 | sed -e 's/\x1B\[[0-9;]*[a-zA-Z]//g' | tr -d '\r' > /tmp/pkg_batch.txt
                     gui_textbox /tmp/pkg_batch.txt "Kết quả cài hàng loạt"
                 fi
                 ;;
